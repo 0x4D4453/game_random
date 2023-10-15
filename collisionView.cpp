@@ -305,13 +305,17 @@ int main() {
       }
     }
 
-    //View / Camera
-    view.setCenter(player.getPosition().x, player.getPosition().y);
+    float x = player.getPosition().x;
+    float y = player.getPosition().y;
 
     if ((player.getPosition().x - view.getSize().x/2) < 0)
-      view.setCenter(graphicsManager.getWidth()/2, graphicsManager.getHeight()/2);
-    else if ((player.getPosition().y) + view.getSize().y/2 > graphicsManager.getHeight())
-      view.setCenter(player.getPosition().x, graphicsManager.getHeight()/2);
+      x = graphicsManager.getWidth()/2;
+
+    if ((player.getPosition().y) + view.getSize().y/2 > graphicsManager.getHeight())
+      y = graphicsManager.getHeight()/2;
+
+    //View / Camera
+    view.setCenter(x, y);
 
     //Clear, Draw, Display
     graphicsManager.clear(sf::Color(236,200,169));
