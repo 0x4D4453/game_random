@@ -6,6 +6,9 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 
+#define GRAVIDADE 20
+#define ALTURA_PULO 5
+
 class GraphicsManager {
   private:
     sf::RenderWindow* m_window;
@@ -54,7 +57,7 @@ class Player {
         m_speed(300.f),
         velocity(0.f, 0.f),
         m_window(NULL),
-        m_isJumping(false)
+        m_isJumping(true)
     {
       m_player.setSize(sf::Vector2f(50.f, 50.f));
       m_player.setFillColor(sf::Color::Magenta);
@@ -66,16 +69,24 @@ class Player {
 
     void handleInput(float dt) {
       velocity.x = 0.f;
-      velocity.y = 0.f;
+      // velocity.y = 0.f;
    
-      if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-        velocity.y -= m_speed * dt;
-      if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-        velocity.y += m_speed * dt;
+      // if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+      //   velocity.y -= m_speed * dt;
+      // if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+      //   velocity.y += m_speed * dt;
       if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
         velocity.x -= m_speed * dt;
       if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
         velocity.x += m_speed * dt;
+
+      if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space) && !m_isJumping) {
+        velocity.y -= sqrt(2.0 * GRAVIDADE * ALTURA_PULO);
+        m_isJumping = true;
+      }
+
+      if (m_isJumping)
+        velocity.y += GRAVIDADE * dt;
 
       m_player.move(velocity);
     }
@@ -104,7 +115,16 @@ class Player {
       velocity.y = y;
     }
 
-    void setJumping(bool isJumping) { m_isJumping = isJumping; }
+    sf::Vector2f getVelocity() {
+      return velocity;
+    }
+
+    void setJumping(bool isJumping) {
+      m_isJumping = isJumping;
+
+      if (!isJumping)
+        velocity.y = 0;
+    }
 
     void move(float x, float y) { m_player.move(sf::Vector2f(x, y)); }    
 };
@@ -247,6 +267,8 @@ int main() {
           xOverlap *= -1;
          player.move(xOverlap, 0);
       }
+
+      player.setJumping(false);
     }
 
     if (player.getGlobalBounds().intersects(wall.getGlobalBounds())) {
@@ -265,15 +287,16 @@ int main() {
 
       float xOverlap = std::max(0.f, std::min(playerRight, wallRight) - std::max(playerLeft, wallLeft));
       float yOverlap =  std::max(0.f, std::min(playerBottom, wallBottom) - std::max(playerTop, wallTop));
-      
+            
       if (yOverlap < xOverlap) {
-         if (playerTop < wallTop)
-           yOverlap *= -1;
-         player.move(0, yOverlap);
+        if (playerTop < wallTop)
+          yOverlap *= -1;
+        player.move(0, yOverlap);
+        player.setJumping(false);
       } else if (xOverlap < yOverlap) {
-         if (playerLeft < wallLeft)
+        if (playerLeft < wallLeft)
           xOverlap *= -1;
-         player.move(xOverlap, 0);
+        player.move(xOverlap, 0);
       }
     }
 
@@ -295,9 +318,10 @@ int main() {
       float yOverlap =  std::max(0.f, std::min(playerBottom, enemyBottom) - std::max(playerTop, enemyTop));
       
       if (yOverlap < xOverlap) {
-         if (playerTop < enemyTop)
-           yOverlap *= -1;
-         player.move(0, yOverlap);
+        if (playerTop < enemyTop)
+          yOverlap *= -1;
+        player.move(0, yOverlap);
+        player.setJumping(false);
       } else if (xOverlap < yOverlap) {
          if (playerLeft < enemyLeft)
           xOverlap *= -1;
